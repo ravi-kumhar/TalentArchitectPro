@@ -42,6 +42,7 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(data),
       });
 
@@ -56,8 +57,10 @@ export default function Login() {
         description: "Logged in successfully",
       });
 
-      // Redirect to dashboard
-      window.location.href = "/";
+      // Reload to trigger auth check
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

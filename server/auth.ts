@@ -36,24 +36,34 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Set to false for development
       maxAge: sessionTtl,
+      sameSite: 'lax',
     },
   });
 }
 
 export const isAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
-  if (!req.session.userId) {
+  if (!req.session || !req.session.userId) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   try {
     const user = await storage.getUser(req.session.userId);
     if (!user || !user.isActive) {
+      req.session.destroy(() => {});
       return res.status(401).json({ message: "Unauthorized" });
     }
     
-    req.user = user;
+    req.user = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      department: user.department,
+      isActive: user.isActive,
+    };
     next();
   } catch (error) {
     console.error("Error in authentication middleware:", error);
