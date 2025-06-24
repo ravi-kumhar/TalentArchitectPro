@@ -14,6 +14,9 @@ import Onboarding from "@/pages/onboarding";
 import Employees from "@/pages/employees";
 import Performance from "@/pages/performance";
 import Analytics from "@/pages/analytics";
+import Profile from "@/pages/profile";
+import Notifications from "@/pages/notifications";
+import TestFeatures from "@/pages/test-features";
 import NotFound from "@/pages/not-found";
 import MainLayout from "@/components/layout/main-layout";
 

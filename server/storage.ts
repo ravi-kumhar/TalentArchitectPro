@@ -32,6 +32,8 @@ export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  getUsers(): Promise<User[]>;
+  updateUser(id: number, userData: Partial<{ firstName: string; lastName: string; email: string; role: string; department: string; isActive: boolean; }>): Promise<User>;
   
   // Job operations
   getJobs(filters?: { status?: string; department?: string; limit?: number }): Promise<Job[]>;
@@ -84,8 +86,10 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   // User operations
-  async getUser(id: number): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.id, id));
+  async getUser(id: string): Promise<User | undefined> {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) return undefined;
+    const result = await db.select().from(users).where(eq(users.id, numericId));
     return result[0];
   }
 
@@ -103,13 +107,22 @@ export class DatabaseStorage implements IStorage {
     department?: string;
   }): Promise<User> {
     const result = await db.insert(users).values({
-      ...userData,
-      role: userData.role || "employee",
+      email: userData.email,
+      password: userData.password,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+
+      role: (userData.role as "admin" | "hr_manager" | "recruiter" | "manager" | "employee") || "employee",
+      department: userData.department || "General",
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     }).returning();
     return result[0];
+  }
+
+  async getUsers(): Promise<User[]> {
+    return await db.select().from(users);
   }
 
   async updateUser(id: number, userData: Partial<{
@@ -121,7 +134,15 @@ export class DatabaseStorage implements IStorage {
     isActive: boolean;
   }>): Promise<User> {
     const result = await db.update(users)
-      .set({ ...userData, updatedAt: new Date() })
+      .set({ 
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        role: userData.role as "admin" | "hr_manager" | "recruiter" | "manager" | "employee" | null,
+        department: userData.department,
+        isActive: userData.isActive,
+        updatedAt: new Date() 
+      })
       .where(eq(users.id, id))
       .returning();
     return result[0];
@@ -313,15 +334,12 @@ export class DatabaseStorage implements IStorage {
 
   // Activity operations
   async getActivityLogs(userId?: string, limit = 50): Promise<ActivityLog[]> {
-    let query = db.select().from(activityLogs);
-    
     if (userId) {
-      query = query.where(eq(activityLogs.userId, userId));
+      const numericUserId = parseInt(userId, 10);
+      if (isNaN(numericUserId)) return [];
+      return await db.select().from(activityLogs).where(eq(activityLogs.userId, numericUserId)).limit(limit);
     }
-    
-    query = query.orderBy(desc(activityLogs.createdAt)).limit(limit);
-    
-    return await query;
+    return await db.select().from(activityLogs).limit(limit);
   }
 
   async createActivityLog(log: InsertActivityLog): Promise<ActivityLog> {
