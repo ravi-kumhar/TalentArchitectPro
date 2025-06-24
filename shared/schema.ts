@@ -26,12 +26,13 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table (required for Replit Auth)
+// User storage table
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 255 }).unique().notNull(),
+  password: varchar("password", { length: 255 }).notNull(),
+  firstName: varchar("first_name", { length: 100 }).notNull(),
+  lastName: varchar("last_name", { length: 100 }).notNull(),
   profileImageUrl: varchar("profile_image_url"),
   role: varchar("role", { enum: ["admin", "hr_manager", "recruiter", "manager", "employee"] }).default("employee"),
   department: varchar("department"),
@@ -64,7 +65,7 @@ export const jobs = pgTable("jobs", {
     enum: ["draft", "active", "paused", "closed"] 
   }).default("draft"),
   applicationDeadline: date("application_deadline"),
-  postedBy: varchar("posted_by").references(() => users.id),
+  postedBy: integer("posted_by").references(() => users.id),
   aiScore: integer("ai_score").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -185,7 +186,7 @@ export const performanceReviews = pgTable("performance_reviews", {
 // Activity logs
 export const activityLogs = pgTable("activity_logs", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").references(() => users.id),
+  userId: integer("user_id").references(() => users.id),
   action: varchar("action").notNull(),
   entityType: varchar("entity_type"), // job, candidate, application, etc.
   entityId: varchar("entity_id"),
