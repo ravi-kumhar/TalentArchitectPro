@@ -52,6 +52,9 @@ function Router() {
           <Route path="/employees" component={Employees} />
           <Route path="/performance" component={Performance} />
           <Route path="/analytics" component={Analytics} />
+          <Route path="/profile" component={Profile} />
+          <Route path="/notifications" component={Notifications} />
+          <Route path="/test-features" component={TestFeatures} />
         </MainLayout>
       )}
       <Route component={NotFound} />

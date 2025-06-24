@@ -186,11 +186,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/jobs', isAuthenticated, async (req: any, res) => {
     try {
+      // Clean the job data to handle empty dates and convert data types
+      const cleanedData = { ...req.body };
+      
+      // Handle empty dates
+      if (cleanedData.applicationDeadline === "" || cleanedData.applicationDeadline === null) {
+        delete cleanedData.applicationDeadline;
+      }
+      if (cleanedData.startDate === "" || cleanedData.startDate === null) {
+        delete cleanedData.startDate;
+      }
+      
       const jobData = insertJobSchema.parse({
-        ...req.body,
+        ...cleanedData,
         postedBy: req.user.id,
-        salaryMin: req.body.salaryMin ? req.body.salaryMin.toString() : null,
-        salaryMax: req.body.salaryMax ? req.body.salaryMax.toString() : null,
+        salaryMin: cleanedData.salaryMin ? cleanedData.salaryMin.toString() : null,
+        salaryMax: cleanedData.salaryMax ? cleanedData.salaryMax.toString() : null,
       });
       const job = await storage.createJob(jobData);
       
@@ -542,6 +553,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid review data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to create performance review" });
+    }
+  });
+
+  // Profile routes
+  app.get('/api/profile', isAuthenticated, async (req: any, res) => {
+    try {
+      res.json(req.user);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
+  app.put('/api/profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const updatedUser = await storage.updateUser(req.user.id, req.body);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // Activity logs routes
+  app.get('/api/activity-logs', isAuthenticated, async (req: any, res) => {
+    try {
+      const { userId, limit } = req.query;
+      const logs = await storage.getActivityLogs(userId || req.user.id.toString(), parseInt(limit) || 50);
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching activity logs:", error);
+      res.status(500).json({ message: "Failed to fetch activity logs" });
+    }
+  });
+
+  // Employee routes
+  app.get('/api/employees', isAuthenticated, async (req: any, res) => {
+    try {
+      const employees = await storage.getUsers();
+      res.json(employees);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+      res.status(500).json({ message: "Failed to fetch employees" });
+    }
+  });
+
+  app.put('/api/employees/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const updatedUser = await storage.updateUser(parseInt(req.params.id), req.body);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating employee:", error);
+      res.status(500).json({ message: "Failed to update employee" });
     }
   });
 
