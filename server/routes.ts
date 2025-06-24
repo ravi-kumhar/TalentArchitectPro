@@ -188,7 +188,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const jobData = insertJobSchema.parse({
         ...req.body,
-        postedBy: req.user.id.toString(),
+        postedBy: req.user.id,
+        salaryMin: req.body.salaryMin ? req.body.salaryMin.toString() : null,
+        salaryMax: req.body.salaryMax ? req.body.salaryMax.toString() : null,
       });
       const job = await storage.createJob(jobData);
       
