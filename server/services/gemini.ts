@@ -2,7 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import type { Candidate, Job } from "@shared/schema";
 
 // Note that the newest Gemini model series is "gemini-2.5-flash" or "gemini-2.5-pro"
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY || "" });
 
 export async function generateJobDescription(jobData: {
   title: string;
@@ -29,20 +29,15 @@ Please include:
 
 Make it professional, engaging, and tailored to attract top talent.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: prompt }]
-        }
-      ],
-      config: {
-        systemInstruction: "You are an expert HR professional specializing in creating compelling job descriptions that attract top talent while being clear about requirements and expectations."
-      }
-    });
+    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    
+    if (!response) {
+      throw new Error("No response from AI");
+    }
 
-    return response.text || "";
+    return response.text();
   } catch (error) {
     console.error("Error generating job description:", error);
     throw new Error("Failed to generate job description");
