@@ -1,0 +1,167 @@
+You are an expert AI coding assistant. Create a complete modular application named **TalentArchitect**, an AI-powered Recruitment, Hiring, Onboarding, and HR Management platform.
+
+### 🧩 TECH STACK
+- Frontend: Angular 17+, Tailwind CSS, Angular Material
+- Backend: .NET 8 Web API with EF Core
+- Database: PostgreSQL (primary), MongoDB (for document/resume store)
+- AI Services: OpenAI GPT-4, Sentence-BERT, scikit-learn (for ML microservices in Python)
+- Deployment: Docker + Kubernetes ready, Swagger UI for API docs
+
+---
+
+### 🎯 OBJECTIVE
+Build a modern, scalable, AI-augmented HR software platform that covers:
+- Recruitment
+- Hiring/Interviewing
+- Onboarding
+- HR Management
+- Performance Management
+- Employee Self-Service (ESS)
+- Dashboards & Analytics
+- AI Copilots
+
+---
+
+### ✅ MODULES TO BUILD
+
+#### 1. 🔍 Recruitment Module
+- Job requisition form with approval flow (Angular form + workflow API)
+- Job posting manager (multi-channel: LinkedIn, Naukri)
+- Smart JD Generator (uses GPT API, front-end form)
+- Resume parser (upload PDF, extract to model)
+- Candidate ranking engine (API using BERT or SentenceTransformer model)
+- Candidate profiles list with AI match score
+- Resume search with filters (keyword, skills, location, experience)
+- Diversity/DEI scoring system (basic LLM model + NLP tagging)
+- Candidate sourcing suggestions using LinkedIn/GitHub scraping (plugin API endpoints)
+
+#### 2. 👥 Hiring Management
+- Customizable interview pipeline (UI pipeline builder using Angular drag-and-drop)
+- Interview scheduling (calendar integration API with Google/MS)
+- Feedback form builder + scoring templates (multi-interviewer support)
+- Offer letter template builder + signature (DocuSign/Adobe API)
+- Interview summary generator (LLM endpoint to summarize notes or transcript)
+
+#### 3. 🎓 Onboarding
+- Onboarding task manager (for HR, IT, Admin)
+- Welcome email generator (AI generated + user editing)
+- Checklist UI with step-tracking for new joiners
+- Digital document upload (KYC, PAN, Aadhar, Degrees, etc.)
+- Mentor assignment (AI-match based on profile)
+- Personalized onboarding timeline (calendar + AI generated)
+- Onboarding bot (Angular chat component using GPT-4 API)
+
+#### 4. 🧾 Core HR Management (HRIS)
+- Employee profile manager
+- Department/project/team structure builder
+- Leave application system (UI + API + calendar sync)
+- Attendance tracking (location-enabled or biometric integration-ready)
+- Asset manager (IT, office)
+- Payroll data integration endpoints
+- Document vault (offer letters, payslips, HR docs)
+
+#### 5. 🏆 Performance Management
+- OKR/Goal setting dashboard
+- 30/60/90 Day review modules
+- Feedback & rating UI (peer, manager, 360)
+- AI-powered review summarizer
+- Promotion recommendations engine (Python ML microservice)
+- Performance heatmaps in Angular charts
+
+#### 6. 📱 Employee Self-Service Portal
+- My Profile page
+- Payslip/offer download panel
+- AI chatbot for HR FAQs
+- Leave & attendance dashboard
+- Upskilling recommendations (from LMS APIs)
+- Internal job applications (career growth path)
+
+#### 7. 📊 Dashboards & Reports
+- Recruitment funnel dashboard
+- Interview conversion report
+- Attrition risk dashboard (Python ML API)
+- DEI & mood heatmaps
+- Custom BI report builder UI (select fields + preview)
+- Export to CSV/PDF, Email Scheduler
+
+#### 8. 🤖 AI Copilots & Agents
+- HR Copilot: GPT-powered assistant for admin tasks, policies
+- Recruiter Copilot: JD writing, resume comparison, interview email drafts
+- Candidate Copilot: Resume improvement, interview preparation guide
+- Onboarding Buddy: AI chatbot that guides through onboarding tasks
+
+---
+
+### 🧠 AI INTEGRATION (BACKEND SERVICES)
+
+- GPT-4/OpenAI APIs: JD generation, Interview summary, Email drafts, Policy Q&A
+- Sentence-BERT (Python): Candidate-to-JD match scoring
+- Resume Parser: spaCy or custom ML model
+- Churn Predictor: XGBoost-based model (inputs: tenure, engagement, manager rating)
+- Bias Detector: LLM prompt-based checker (JD, feedback texts)
+- Recommendation Engine: Role progression + learning path
+
+---
+
+### 🔐 SECURITY & COMPLIANCE
+- JWT Authentication + Refresh Tokens
+- Role-based access (Admin, Recruiter, Manager, Employee)
+- Multi-tenancy support (company isolation)
+- Audit logs (DB + secure file logging)
+- GDPR-ready data model (consent, deletion requests)
+- Azure Key Vault/Secrets Manager for credentials
+
+---
+
+### 🌐 API DESIGN STANDARDS
+- RESTful endpoints using .NET Core 8 Web API
+- Base path: `/api/v1/[module]/[action]`
+- Swagger UI with XML comments and example requests
+- DTOs with validation, pagination, search filters
+- All AI features exposed as `/ai/[feature]` endpoints
+
+---
+
+### 💻 ANGULAR FRONTEND REQUIREMENTS
+
+- Angular 17+ project setup with:
+  - Angular Material + TailwindCSS
+  - Role-based dynamic routing (Admin, HR, Manager, Candidate)
+  - Component library with shared layout
+  - Modular lazy-loaded features
+  - Reusable data tables, filters, card views
+  - Theme toggler (dark/light)
+  - Charts using ngx-charts or Chart.js
+  - Reactive Forms with stepper UI
+  - Form validation + error summary
+  - State management using Signal or NgRx
+
+---
+
+### 🔧 DEVOPS & DEPLOYMENT
+
+- Docker for all services
+- Kubernetes YAML templates for microservices
+- PostgreSQL as main DB, MongoDB for resumes
+- Redis cache service
+- GitHub Actions for CI/CD (build, test, deploy)
+- Environment-specific appsettings with secrets
+
+---
+
+### 🧪 MVP GUIDELINE
+Build in phases:
+1. **MVP-1: Recruitment + Resume Parsing + JD Match**
+2. **MVP-2: Interview Scheduling + Feedback + Offer**
+3. **MVP-3: Onboarding + AI Copilot + ESS Portal**
+4. **MVP-4: HRIS Core + Performance Review**
+
+---
+
+### 🚀 OUTPUT EXPECTATIONS
+- Angular frontend (component-based, responsive)
+- Clean .NET Core Web API backend (layered architecture: Controllers → Services → Repos → EF)
+- Swagger UI ready
+- Connected PostgreSQL and MongoDB
+- LLM integration examples via OpenAI endpoints
+- Python ML microservices (Resume Matcher, Attrition Predictor)
