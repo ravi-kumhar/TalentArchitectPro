@@ -321,12 +321,12 @@ export default function Onboarding() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+            <Select value={selectedEmployee || undefined} onValueChange={(value) => setSelectedEmployee(value === "all" ? "" : value)}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="All employees" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All employees</SelectItem>
+                <SelectItem value="all">All employees</SelectItem>
                 <SelectItem value="emp1">John Doe</SelectItem>
                 <SelectItem value="emp2">Jane Smith</SelectItem>
                 <SelectItem value="emp3">Mike Johnson</SelectItem>

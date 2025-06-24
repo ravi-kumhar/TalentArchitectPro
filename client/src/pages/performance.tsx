@@ -288,7 +288,7 @@ export default function Performance() {
                 <SelectValue placeholder="All departments" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All departments</SelectItem>
+                <SelectItem value="all">All departments</SelectItem>
                 <SelectItem value="engineering">Engineering</SelectItem>
                 <SelectItem value="product">Product</SelectItem>
                 <SelectItem value="design">Design</SelectItem>
