@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { getSession, isAuthenticated, hashPassword, comparePassword } from "./auth";
 import { 
   insertJobSchema, 
   insertCandidateSchema, 
@@ -32,15 +32,100 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  // Session middleware
+  app.use(getSession());
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.post('/api/auth/signup', async (req, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      const { firstName, lastName, email, password } = req.body;
+
+      if (!firstName || !lastName || !email || !password) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists with this email" });
+      }
+
+      // Hash password
+      const hashedPassword = await hashPassword(password);
+
+      // Create user
+      const user = await storage.createUser({
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+      });
+
+      res.status(201).json({ message: "User created successfully", userId: user.id });
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      // Get user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Verify password
+      const isValidPassword = await comparePassword(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Create session
+      req.session.userId = user.id;
+      req.session.user = {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      };
+
+      res.json({ 
+        message: "Login successful", 
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+        }
+      });
+    } catch (error) {
+      console.error("Error logging in:", error);
+      res.status(500).json({ message: "Failed to login" });
+    }
+  });
+
+  app.post('/api/auth/logout', (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Failed to logout" });
+      }
+      res.json({ message: "Logout successful" });
+    });
+  });
+
+  app.get('/api/auth/user', isAuthenticated, async (req, res) => {
+    try {
+      res.json(req.user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -103,13 +188,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const jobData = insertJobSchema.parse({
         ...req.body,
-        postedBy: req.user.claims.sub,
+        postedBy: req.user.id.toString(),
       });
       const job = await storage.createJob(jobData);
       
       // Log activity
       await storage.createActivityLog({
-        userId: req.user.claims.sub,
+        userId: req.user.id.toString(),
         action: "create_job",
         entityType: "job",
         entityId: job.id.toString(),
@@ -134,7 +219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log activity
       await storage.createActivityLog({
-        userId: req.user.claims.sub,
+        userId: req.user.id.toString(),
         action: "update_job",
         entityType: "job",
         entityId: job.id.toString(),
@@ -163,7 +248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log activity
       await storage.createActivityLog({
-        userId: req.user.claims.sub,
+        userId: req.user.id.toString(),
         action: "delete_job",
         entityType: "job",
         entityId: id.toString(),
@@ -238,7 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log activity
       await storage.createActivityLog({
-        userId: req.user.claims.sub,
+        userId: req.user.id.toString(),
         action: "create_candidate",
         entityType: "candidate",
         entityId: candidate.id.toString(),
@@ -317,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log activity
       await storage.createActivityLog({
-        userId: req.user.claims.sub,
+        userId: req.user.id.toString(),
         action: "create_application",
         entityType: "application",
         entityId: application.id.toString(),
@@ -357,7 +442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log activity
       await storage.createActivityLog({
-        userId: req.user.claims.sub,
+        userId: req.user.id.toString(),
         action: "schedule_interview",
         entityType: "interview",
         entityId: interview.id.toString(),
@@ -405,7 +490,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log activity
       await storage.createActivityLog({
-        userId: req.user.claims.sub,
+        userId: req.user.id.toString(),
         action: "create_onboarding_task",
         entityType: "onboarding_task",
         entityId: task.id.toString(),
@@ -441,7 +526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log activity
       await storage.createActivityLog({
-        userId: req.user.claims.sub,
+        userId: req.user.id.toString(),
         action: "create_performance_review",
         entityType: "performance_review",
         entityId: review.id.toString(),
