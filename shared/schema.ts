@@ -195,6 +195,25 @@ export const activityLogs = pgTable("activity_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const jobTemplates = pgTable("job_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  title: text("title").notNull(),
+  department: text("department").notNull(),
+  description: text("description"),
+  requirements: text("requirements"),
+  location: text("location"),
+  employmentType: text("employment_type").notNull().default("full_time"),
+  experienceLevel: text("experience_level").notNull().default("mid"),
+  salaryMin: integer("salary_min"),
+  salaryMax: integer("salary_max"),
+  skills: text("skills").array(),
+  benefits: text("benefits").array(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   jobsPosted: many(jobs),
@@ -268,6 +287,10 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
   }),
 }));
 
+export const jobTemplatesRelations = relations(jobTemplates, ({ many }) => ({
+  jobs: many(jobs),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
@@ -312,7 +335,13 @@ export const insertPerformanceReviewSchema = createInsertSchema(performanceRevie
 
 export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({
   id: true,
+  timestamp: true,
+});
+
+export const insertJobTemplateSchema = createInsertSchema(jobTemplates).omit({
+  id: true,
   createdAt: true,
+  updatedAt: true,
 });
 
 // Types
@@ -332,3 +361,5 @@ export type PerformanceReview = typeof performanceReviews.$inferSelect;
 export type InsertPerformanceReview = z.infer<typeof insertPerformanceReviewSchema>;
 export type ActivityLog = typeof activityLogs.$inferSelect;
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
+export type JobTemplate = typeof jobTemplates.$inferSelect;
+export type InsertJobTemplate = z.infer<typeof insertJobTemplateSchema>;

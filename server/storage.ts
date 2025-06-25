@@ -7,6 +7,7 @@ import {
   onboardingTasks,
   performanceReviews,
   activityLogs,
+  jobTemplates,
   type User,
   type UpsertUser,
   type Job,
@@ -23,6 +24,8 @@ import {
   type InsertPerformanceReview,
   type ActivityLog,
   type InsertActivityLog,
+  type JobTemplate,
+  type InsertJobTemplate,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte, desc, asc } from "drizzle-orm";
@@ -82,6 +85,13 @@ export interface IStorage {
     interviewsToday: number;
     newHires: number;
   }>;
+
+  // Job Template operations
+  getJobTemplates(): Promise<JobTemplate[]>;
+  getJobTemplate(id: number): Promise<JobTemplate | undefined>;
+  createJobTemplate(template: InsertJobTemplate): Promise<JobTemplate>;
+  updateJobTemplate(id: number, template: Partial<InsertJobTemplate>): Promise<JobTemplate>;
+  deleteJobTemplate(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -397,6 +407,60 @@ export class DatabaseStorage implements IStorage {
       interviewsToday: todayInterviewsResult.length,
       newHires: newHiresResult.length,
     };
+  }
+
+  // Job Template operations
+  async getJobTemplates(): Promise<JobTemplate[]> {
+    try {
+      return await db.select().from(jobTemplates).where(eq(jobTemplates.isActive, true)).orderBy(desc(jobTemplates.createdAt));
+    } catch (error) {
+      console.error('Error getting job templates:', error);
+      return [];
+    }
+  }
+
+  async getJobTemplate(id: number): Promise<JobTemplate | undefined> {
+    try {
+      const [template] = await db.select().from(jobTemplates).where(eq(jobTemplates.id, id));
+      return template;
+    } catch (error) {
+      console.error('Error getting job template:', error);
+      return undefined;
+    }
+  }
+
+  async createJobTemplate(template: InsertJobTemplate): Promise<JobTemplate> {
+    try {
+      const [newTemplate] = await db.insert(jobTemplates).values(template).returning();
+      return newTemplate;
+    } catch (error) {
+      console.error('Error creating job template:', error);
+      throw error;
+    }
+  }
+
+  async updateJobTemplate(id: number, template: Partial<InsertJobTemplate>): Promise<JobTemplate> {
+    try {
+      const [updatedTemplate] = await db.update(jobTemplates)
+        .set({ ...template, updatedAt: new Date() })
+        .where(eq(jobTemplates.id, id))
+        .returning();
+      return updatedTemplate;
+    } catch (error) {
+      console.error('Error updating job template:', error);
+      throw error;
+    }
+  }
+
+  async deleteJobTemplate(id: number): Promise<void> {
+    try {
+      await db.update(jobTemplates)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(jobTemplates.id, id));
+    } catch (error) {
+      console.error('Error deleting job template:', error);
+      throw error;
+    }
   }
 }
 
