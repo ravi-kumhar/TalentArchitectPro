@@ -11,10 +11,15 @@ import { useToast } from "@/hooks/use-toast";
 import { jobsAPI, invalidateQueries } from "@/lib/api";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import JobCreationModal from "@/components/jobs/job-creation-modal";
+import JobViewModal from "@/components/jobs/job-view-modal";
+import JobEditModal from "@/components/jobs/job-edit-modal";
 import type { Job } from "@shared/schema";
 
 export default function Recruitment() {
   const [showCreateJob, setShowCreateJob] = useState(false);
+  const [showViewJob, setShowViewJob] = useState(false);
+  const [showEditJob, setShowEditJob] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const { toast } = useToast();
@@ -112,6 +117,21 @@ export default function Recruitment() {
     if (score >= 80) return 'bg-yellow-500';
     if (score >= 70) return 'bg-orange-500';
     return 'bg-red-500';
+  };
+
+  const handleViewJob = (job: Job) => {
+    setSelectedJob(job);
+    setShowViewJob(true);
+  };
+
+  const handleEditJob = (job: Job) => {
+    setSelectedJob(job);
+    setShowEditJob(true);
+  };
+
+  const handleEditFromView = () => {
+    setShowViewJob(false);
+    setShowEditJob(true);
   };
 
   return (
@@ -245,11 +265,11 @@ export default function Recruitment() {
 
                     <div className="flex items-center justify-between pt-2">
                       <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => handleViewJob(job)}>
                           <Eye className="w-4 h-4 mr-1" />
                           View
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => handleEditJob(job)}>
                           <Edit className="w-4 h-4 mr-1" />
                           Edit
                         </Button>
@@ -287,59 +307,119 @@ export default function Recruitment() {
         </TabsContent>
 
         <TabsContent value="job-pipeline">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recruitment Pipeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium text-gray-900">Applied</h3>
-                  <div className="space-y-2">
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="font-medium text-sm">John Smith</p>
-                      <p className="text-xs text-muted-foreground">Frontend Developer</p>
-                    </div>
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="font-medium text-sm">Sarah Wilson</p>
-                      <p className="text-xs text-muted-foreground">Product Manager</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <h3 className="font-medium text-gray-900">Screening</h3>
-                  <div className="space-y-2">
-                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="font-medium text-sm">Mike Chen</p>
-                      <p className="text-xs text-muted-foreground">UX Designer</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <h3 className="font-medium text-gray-900">Interview</h3>
-                  <div className="space-y-2">
-                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                      <p className="font-medium text-sm">Lisa Garcia</p>
-                      <p className="text-xs text-muted-foreground">Data Scientist</p>
-                    </div>
-                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                      <p className="font-medium text-sm">David Kim</p>
-                      <p className="text-xs text-muted-foreground">Backend Engineer</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <h3 className="font-medium text-gray-900">Offer</h3>
-                  <div className="space-y-2">
-                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="font-medium text-sm">Anna Taylor</p>
-                      <p className="text-xs text-muted-foreground">Marketing Manager</p>
-                    </div>
-                  </div>
-                </div>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Recruitment Pipeline</h2>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">Export</Button>
+                <Button size="sm">Manage Pipeline</Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Pipeline Overview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-gray-900">Applied</h3>
+                      <Badge variant="secondary">8</Badge>
+                    </div>
+                    <div className="space-y-2 min-h-[200px]">
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100">
+                        <p className="font-medium text-sm">John Smith</p>
+                        <p className="text-xs text-muted-foreground">Frontend Developer</p>
+                        <p className="text-xs text-blue-600 mt-1">2 hours ago</p>
+                      </div>
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100">
+                        <p className="font-medium text-sm">Sarah Wilson</p>
+                        <p className="text-xs text-muted-foreground">Product Manager</p>
+                        <p className="text-xs text-blue-600 mt-1">5 hours ago</p>
+                      </div>
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100">
+                        <p className="font-medium text-sm">Alex Chen</p>
+                        <p className="text-xs text-muted-foreground">Backend Engineer</p>
+                        <p className="text-xs text-blue-600 mt-1">1 day ago</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-gray-900">Screening</h3>
+                      <Badge variant="secondary">4</Badge>
+                    </div>
+                    <div className="space-y-2 min-h-[200px]">
+                      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg cursor-pointer hover:bg-yellow-100">
+                        <p className="font-medium text-sm">Mike Chen</p>
+                        <p className="text-xs text-muted-foreground">UX Designer</p>
+                        <p className="text-xs text-yellow-600 mt-1">In review</p>
+                      </div>
+                      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg cursor-pointer hover:bg-yellow-100">
+                        <p className="font-medium text-sm">Emma Davis</p>
+                        <p className="text-xs text-muted-foreground">Data Analyst</p>
+                        <p className="text-xs text-yellow-600 mt-1">Phone screening</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-gray-900">Interview</h3>
+                      <Badge variant="secondary">3</Badge>
+                    </div>
+                    <div className="space-y-2 min-h-[200px]">
+                      <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg cursor-pointer hover:bg-orange-100">
+                        <p className="font-medium text-sm">Lisa Garcia</p>
+                        <p className="text-xs text-muted-foreground">Data Scientist</p>
+                        <p className="text-xs text-orange-600 mt-1">Tech interview today</p>
+                      </div>
+                      <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg cursor-pointer hover:bg-orange-100">
+                        <p className="font-medium text-sm">David Kim</p>
+                        <p className="text-xs text-muted-foreground">Backend Engineer</p>
+                        <p className="text-xs text-orange-600 mt-1">Final round tomorrow</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-gray-900">Offer</h3>
+                      <Badge variant="secondary">2</Badge>
+                    </div>
+                    <div className="space-y-2 min-h-[200px]">
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg cursor-pointer hover:bg-green-100">
+                        <p className="font-medium text-sm">Anna Taylor</p>
+                        <p className="text-xs text-muted-foreground">Marketing Manager</p>
+                        <p className="text-xs text-green-600 mt-1">Offer sent</p>
+                      </div>
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg cursor-pointer hover:bg-green-100">
+                        <p className="font-medium text-sm">Robert Johnson</p>
+                        <p className="text-xs text-muted-foreground">Senior Developer</p>
+                        <p className="text-xs text-green-600 mt-1">Negotiating</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-gray-900">Hired</h3>
+                      <Badge variant="secondary">1</Badge>
+                    </div>
+                    <div className="space-y-2 min-h-[200px]">
+                      <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg cursor-pointer hover:bg-emerald-100">
+                        <p className="font-medium text-sm">Jennifer Lee</p>
+                        <p className="text-xs text-muted-foreground">UI Designer</p>
+                        <p className="text-xs text-emerald-600 mt-1">Starting next week</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="analytics">
@@ -413,57 +493,200 @@ export default function Recruitment() {
         </TabsContent>
 
         <TabsContent value="templates">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardHeader>
-                <CardTitle className="text-lg">Software Engineer Template</CardTitle>
-                <p className="text-sm text-muted-foreground">For technical roles</p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Badge variant="secondary">React</Badge>
-                  <Badge variant="secondary">Node.js</Badge>
-                  <Badge variant="secondary">Full-stack</Badge>
-                </div>
-                <Button className="w-full mt-4" variant="outline">
-                  Use Template
-                </Button>
-              </CardContent>
-            </Card>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Job Templates</h2>
+              <Button onClick={() => setShowCreateJob(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Custom Template
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer group">
+                <CardHeader>
+                  <CardTitle className="text-lg">Software Engineer Template</CardTitle>
+                  <p className="text-sm text-muted-foreground">Full-stack development roles</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Skills included:</p>
+                    <div className="flex flex-wrap gap-1">
+                      <Badge variant="secondary">React</Badge>
+                      <Badge variant="secondary">Node.js</Badge>
+                      <Badge variant="secondary">TypeScript</Badge>
+                      <Badge variant="secondary">AWS</Badge>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Includes:</p>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Technical requirements</li>
+                      <li>• Experience expectations</li>
+                      <li>• Team structure details</li>
+                    </ul>
+                  </div>
+                  <Button 
+                    className="w-full group-hover:bg-primary group-hover:text-primary-foreground" 
+                    variant="outline"
+                    onClick={() => setShowCreateJob(true)}
+                  >
+                    Use Template
+                  </Button>
+                </CardContent>
+              </Card>
 
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardHeader>
-                <CardTitle className="text-lg">Product Manager Template</CardTitle>
-                <p className="text-sm text-muted-foreground">For product roles</p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Badge variant="secondary">Strategy</Badge>
-                  <Badge variant="secondary">Analytics</Badge>
-                  <Badge variant="secondary">Leadership</Badge>
-                </div>
-                <Button className="w-full mt-4" variant="outline">
-                  Use Template
-                </Button>
-              </CardContent>
-            </Card>
+              <Card className="hover:shadow-md transition-shadow cursor-pointer group">
+                <CardHeader>
+                  <CardTitle className="text-lg">Product Manager Template</CardTitle>
+                  <p className="text-sm text-muted-foreground">Strategic product leadership roles</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Skills included:</p>
+                    <div className="flex flex-wrap gap-1">
+                      <Badge variant="secondary">Strategy</Badge>
+                      <Badge variant="secondary">Analytics</Badge>
+                      <Badge variant="secondary">Leadership</Badge>
+                      <Badge variant="secondary">Agile</Badge>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Includes:</p>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Product strategy requirements</li>
+                      <li>• Leadership expectations</li>
+                      <li>• Stakeholder management</li>
+                    </ul>
+                  </div>
+                  <Button 
+                    className="w-full group-hover:bg-primary group-hover:text-primary-foreground" 
+                    variant="outline"
+                    onClick={() => setShowCreateJob(true)}
+                  >
+                    Use Template
+                  </Button>
+                </CardContent>
+              </Card>
 
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardHeader>
-                <CardTitle className="text-lg">Designer Template</CardTitle>
-                <p className="text-sm text-muted-foreground">For design roles</p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Badge variant="secondary">UI/UX</Badge>
-                  <Badge variant="secondary">Figma</Badge>
-                  <Badge variant="secondary">Research</Badge>
-                </div>
-                <Button className="w-full mt-4" variant="outline">
-                  Use Template
-                </Button>
-              </CardContent>
-            </Card>
+              <Card className="hover:shadow-md transition-shadow cursor-pointer group">
+                <CardHeader>
+                  <CardTitle className="text-lg">UX Designer Template</CardTitle>
+                  <p className="text-sm text-muted-foreground">User experience design roles</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Skills included:</p>
+                    <div className="flex flex-wrap gap-1">
+                      <Badge variant="secondary">UI/UX</Badge>
+                      <Badge variant="secondary">Figma</Badge>
+                      <Badge variant="secondary">Research</Badge>
+                      <Badge variant="secondary">Prototyping</Badge>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Includes:</p>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Design process requirements</li>
+                      <li>• Portfolio expectations</li>
+                      <li>• Research methodologies</li>
+                    </ul>
+                  </div>
+                  <Button 
+                    className="w-full group-hover:bg-primary group-hover:text-primary-foreground" 
+                    variant="outline"
+                    onClick={() => setShowCreateJob(true)}
+                  >
+                    Use Template
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow cursor-pointer group">
+                <CardHeader>
+                  <CardTitle className="text-lg">Data Scientist Template</CardTitle>
+                  <p className="text-sm text-muted-foreground">Data analysis and machine learning roles</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Skills included:</p>
+                    <div className="flex flex-wrap gap-1">
+                      <Badge variant="secondary">Python</Badge>
+                      <Badge variant="secondary">Machine Learning</Badge>
+                      <Badge variant="secondary">SQL</Badge>
+                      <Badge variant="secondary">Statistics</Badge>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Includes:</p>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Technical requirements</li>
+                      <li>• Research expectations</li>
+                      <li>• Model development</li>
+                    </ul>
+                  </div>
+                  <Button 
+                    className="w-full group-hover:bg-primary group-hover:text-primary-foreground" 
+                    variant="outline"
+                    onClick={() => setShowCreateJob(true)}
+                  >
+                    Use Template
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow cursor-pointer group">
+                <CardHeader>
+                  <CardTitle className="text-lg">Marketing Manager Template</CardTitle>
+                  <p className="text-sm text-muted-foreground">Digital marketing and growth roles</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Skills included:</p>
+                    <div className="flex flex-wrap gap-1">
+                      <Badge variant="secondary">Digital Marketing</Badge>
+                      <Badge variant="secondary">SEO/SEM</Badge>
+                      <Badge variant="secondary">Analytics</Badge>
+                      <Badge variant="secondary">Content</Badge>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Includes:</p>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Campaign management</li>
+                      <li>• Growth strategy</li>
+                      <li>• Team leadership</li>
+                    </ul>
+                  </div>
+                  <Button 
+                    className="w-full group-hover:bg-primary group-hover:text-primary-foreground" 
+                    variant="outline"
+                    onClick={() => setShowCreateJob(true)}
+                  >
+                    Use Template
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow cursor-pointer group border-dashed border-2">
+                <CardHeader className="text-center">
+                  <div className="mx-auto w-12 h-12 bg-muted rounded-lg flex items-center justify-center mb-2">
+                    <Plus className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  <CardTitle className="text-lg">Create Custom Template</CardTitle>
+                  <p className="text-sm text-muted-foreground">Build your own reusable job template</p>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    onClick={() => setShowCreateJob(true)}
+                  >
+                    Create Template
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
@@ -471,6 +694,19 @@ export default function Recruitment() {
       <JobCreationModal 
         isOpen={showCreateJob} 
         onClose={() => setShowCreateJob(false)} 
+      />
+      
+      <JobViewModal
+        isOpen={showViewJob}
+        onClose={() => setShowViewJob(false)}
+        job={selectedJob}
+        onEdit={handleEditFromView}
+      />
+      
+      <JobEditModal
+        isOpen={showEditJob}
+        onClose={() => setShowEditJob(false)}
+        job={selectedJob}
       />
     </div>
   );
