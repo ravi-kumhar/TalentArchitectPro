@@ -588,6 +588,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dashboard routes
+  app.get('/api/dashboard/stats', isAuthenticated, async (req, res) => {
+    try {
+      const today = new Date();
+      const [jobs, candidates, interviewsToday, applications] = await Promise.all([
+        storage.getJobs({ status: 'active' }),
+        storage.getCandidates({}),
+        storage.getInterviews({ date: today }),
+        storage.getApplications({})
+      ]);
+
+      const stats = {
+        openPositions: jobs.length,
+        activeCandidates: candidates.length,
+        interviewsToday: interviewsToday.length,
+        newHires: applications.filter(app => app.status === 'hired').length
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    }
+  });
+
+  app.get('/api/dashboard/recent-activity', isAuthenticated, async (req: any, res) => {
+    try {
+      const limit = parseInt(req.query.limit) || 10;
+      const logs = await storage.getActivityLogs(null, limit);
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching recent activity:", error);
+      res.status(500).json({ message: "Failed to fetch recent activity" });
+    }
+  });
+
   // Employee routes
   app.get('/api/employees', isAuthenticated, async (req: any, res) => {
     try {
