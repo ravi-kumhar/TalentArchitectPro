@@ -219,67 +219,254 @@ export default function Candidates() {
         </TabsContent>
 
         <TabsContent value="new">
-          <Card>
-            <CardHeader>
-              <CardTitle>New Candidates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No new candidates</h3>
-                <p className="text-muted-foreground mb-4">New candidate applications will appear here.</p>
-                <Button onClick={() => setShowUploadModal(true)}>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload Resume
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">New Candidates</h2>
+              <Button onClick={() => setShowUploadModal(true)}>
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Resume
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredCandidates.filter(c => c.status === 'new').length === 0 ? (
+                <div className="col-span-full">
+                  <Card>
+                    <CardContent className="text-center py-12">
+                      <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No new candidates</h3>
+                      <p className="text-muted-foreground mb-4">New candidate applications will appear here.</p>
+                      <Button onClick={() => setShowUploadModal(true)}>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload Resume
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                filteredCandidates.filter(c => c.status === 'new').map((candidate: Candidate) => (
+                  <Card key={candidate.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-12 w-12">
+                            <AvatarFallback>
+                              {candidate.firstName.charAt(0)}{candidate.lastName.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <CardTitle className="text-lg">
+                              {candidate.firstName} {candidate.lastName}
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                              {candidate.currentPosition || 'Position not specified'}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge variant="outline">New</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Experience:</span>
+                          <span className="font-medium">{candidate.experience || 0} years</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Location:</span>
+                          <span className="font-medium">{candidate.location || 'Not specified'}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 pt-2">
+                        <Button size="sm" variant="outline" className="flex-1">
+                          <Eye className="w-4 h-4 mr-1" />
+                          Review
+                        </Button>
+                        <Button size="sm" className="flex-1">
+                          Move to Screening
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="screening">
-          <Card>
-            <CardHeader>
-              <CardTitle>Candidates in Screening</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No candidates in screening</h3>
-                <p className="text-muted-foreground">Candidates being screened will appear here.</p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Candidates in Screening</h2>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">Bulk Actions</Button>
+                <Button size="sm">Schedule Phone Screen</Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4">
+              {filteredCandidates.filter(c => c.status === 'reviewing').length === 0 ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No candidates in screening</h3>
+                    <p className="text-muted-foreground">Candidates being screened will appear here.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                filteredCandidates.filter(c => c.status === 'reviewing').map((candidate: Candidate) => (
+                  <Card key={candidate.id}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <Avatar className="h-12 w-12">
+                            <AvatarFallback>
+                              {candidate.firstName.charAt(0)}{candidate.lastName.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h3 className="font-medium">{candidate.firstName} {candidate.lastName}</h3>
+                            <p className="text-sm text-muted-foreground">{candidate.currentPosition}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-yellow-100 text-yellow-800">Screening</Badge>
+                          <Button size="sm" variant="outline">Schedule Call</Button>
+                          <Button size="sm">Move to Interview</Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="interviewing">
-          <Card>
-            <CardHeader>
-              <CardTitle>Candidates in Interview Process</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No candidates interviewing</h3>
-                <p className="text-muted-foreground">Candidates in interview stages will appear here.</p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Candidates in Interview Process</h2>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">Interview Calendar</Button>
+                <Button size="sm">Schedule Interview</Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4">
+              {filteredCandidates.filter(c => c.status === 'interviewing').length === 0 ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No candidates interviewing</h3>
+                    <p className="text-muted-foreground">Candidates in interview stages will appear here.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                filteredCandidates.filter(c => c.status === 'interviewing').map((candidate: Candidate) => (
+                  <Card key={candidate.id}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <Avatar className="h-12 w-12">
+                            <AvatarFallback>
+                              {candidate.firstName.charAt(0)}{candidate.lastName.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h3 className="font-medium">{candidate.firstName} {candidate.lastName}</h3>
+                            <p className="text-sm text-muted-foreground">{candidate.currentPosition}</p>
+                            <p className="text-sm text-blue-600">Next: Technical Interview - Tomorrow 2PM</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-blue-100 text-blue-800">Interviewing</Badge>
+                          <Button size="sm" variant="outline">View Schedule</Button>
+                          <Button size="sm">Add Feedback</Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="shortlisted">
-          <Card>
-            <CardHeader>
-              <CardTitle>Shortlisted Candidates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Star className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No shortlisted candidates</h3>
-                <p className="text-muted-foreground">Shortlisted candidates will appear here.</p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Shortlisted Candidates</h2>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">Send Offers</Button>
+                <Button size="sm">Generate Report</Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {filteredCandidates.filter(c => c.status === 'shortlisted').length === 0 ? (
+                <div className="col-span-full">
+                  <Card>
+                    <CardContent className="text-center py-12">
+                      <Star className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No shortlisted candidates</h3>
+                      <p className="text-muted-foreground">Shortlisted candidates will appear here.</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                filteredCandidates.filter(c => c.status === 'shortlisted').map((candidate: Candidate) => (
+                  <Card key={candidate.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-12 w-12">
+                            <AvatarFallback>
+                              {candidate.firstName.charAt(0)}{candidate.lastName.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <CardTitle className="text-lg">
+                              {candidate.firstName} {candidate.lastName}
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                              {candidate.currentPosition || 'Position not specified'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm font-medium">Top Choice</span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <Badge className="bg-green-100 text-green-800">Shortlisted</Badge>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Final Score:</span>
+                          <span className="font-medium">92/100</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Interview Status:</span>
+                          <span className="font-medium text-green-600">Completed</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 pt-2">
+                        <Button size="sm" variant="outline" className="flex-1">
+                          <Eye className="w-4 h-4 mr-1" />
+                          View Profile
+                        </Button>
+                        <Button size="sm" className="flex-1">
+                          Send Offer
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 

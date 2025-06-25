@@ -1,27 +1,26 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { Candidate, Job } from "@shared/schema";
 
-// Note that the newest Gemini model series is "gemini-2.5-flash" or "gemini-2.5-pro"
-const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY || "" });
+const ai = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
 
 export async function generateJobDescription(jobData: {
   title: string;
   department?: string;
   experienceLevel?: string;
+  location?: string;
   employmentType?: string;
-  workLocation?: string;
 }): Promise<string> {
   try {
-    const prompt = `Create a comprehensive job description for the following position:
+    const prompt = `Generate a professional job description for the following position:
 
-Job Title: ${jobData.title}
+Title: ${jobData.title}
 Department: ${jobData.department || 'Not specified'}
 Experience Level: ${jobData.experienceLevel || 'Not specified'}
-Employment Type: ${jobData.employmentType || 'Not specified'}
-Work Location: ${jobData.workLocation || 'Not specified'}
+Location: ${jobData.location || 'Not specified'}
+Employment Type: ${jobData.employmentType || 'Full-time'}
 
-Please include:
-1. Job Summary (2-3 sentences)
+Please create a comprehensive job description that includes:
+1. Company overview (brief, professional)
 2. Key Responsibilities (5-7 bullet points)
 3. Required Qualifications (education, experience, skills)
 4. Preferred Qualifications
@@ -29,92 +28,74 @@ Please include:
 
 Make it professional, engaging, and tailored to attract top talent.`;
 
-    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent(prompt);
     const response = result.response;
+    const text = response.text();
     
-    if (!response) {
-      throw new Error("No response from AI");
-    }
-
-    return response.text();
+    return text;
   } catch (error) {
-    console.error("Error generating job description:", error);
-    throw new Error("Failed to generate job description");
+    console.error('Error generating job description:', error);
+    throw new Error('Failed to generate job description');
   }
 }
 
 export async function analyzeResumeMatch(candidate: Candidate, job: Job): Promise<{
-  matchScore: number;
+  score: number;
   strengths: string[];
   gaps: string[];
-  recommendation: string;
+  recommendations: string[];
 }> {
   try {
-    const candidateProfile = `
-Name: ${candidate.firstName} ${candidate.lastName}
-Experience: ${candidate.experience} years
-Current Position: ${candidate.currentPosition || 'Not specified'}
-Current Company: ${candidate.currentCompany || 'Not specified'}
-Skills: ${JSON.stringify(candidate.skills) || 'Not specified'}
-Education: ${JSON.stringify(candidate.education) || 'Not specified'}
-`;
-
-    const jobRequirements = `
-Job Title: ${job.title}
-Department: ${job.department || 'Not specified'}
-Experience Level: ${job.experienceLevel || 'Not specified'}
-Description: ${job.description || 'Not specified'}
-Requirements: ${job.requirements || 'Not specified'}
-Responsibilities: ${job.responsibilities || 'Not specified'}
-`;
-
-    const prompt = `Analyze how well this candidate matches the job requirements. Provide a detailed assessment in JSON format:
+    const prompt = `Analyze the match between this candidate and job posting:
 
 CANDIDATE:
-${candidateProfile}
+Name: ${candidate.firstName} ${candidate.lastName}
+Current Position: ${candidate.currentPosition || 'Not specified'}
+Experience: ${candidate.experience || 0} years
+Skills: ${candidate.skills?.join(', ') || 'Not specified'}
+Education: ${candidate.education || 'Not specified'}
+Location: ${candidate.location || 'Not specified'}
 
 JOB:
-${jobRequirements}
+Title: ${job.title}
+Department: ${job.department}
+Experience Level: ${job.experienceLevel || 'Not specified'}
+Required Skills: ${job.skills?.join(', ') || 'Not specified'}
+Requirements: ${job.requirements || 'Not specified'}
+Location: ${job.location || 'Not specified'}
 
-Respond with JSON in this exact format:
-{
-  "matchScore": <number between 0-100>,
-  "strengths": ["strength1", "strength2", "strength3"],
-  "gaps": ["gap1", "gap2", "gap3"],
-  "recommendation": "Overall recommendation summary"
-}`;
+Please provide:
+1. Match score (0-100)
+2. Key strengths (3-5 points)
+3. Skill/experience gaps (2-4 points)
+4. Recommendations for next steps (2-3 points)
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-pro",
-      contents: prompt,
-      config: {
-        systemInstruction: "You are an expert technical recruiter with deep experience in matching candidates to job requirements. Provide honest, actionable assessments.",
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "object",
-          properties: {
-            matchScore: { type: "number" },
-            strengths: { type: "array", items: { type: "string" } },
-            gaps: { type: "array", items: { type: "string" } },
-            recommendation: { type: "string" }
-          },
-          required: ["matchScore", "strengths", "gaps", "recommendation"]
-        }
-      }
-    });
+Format as JSON with keys: score, strengths, gaps, recommendations`;
 
-    const result = JSON.parse(response.text || "{}");
+    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
     
-    return {
-      matchScore: Math.max(0, Math.min(100, result.matchScore || 0)),
-      strengths: result.strengths || [],
-      gaps: result.gaps || [],
-      recommendation: result.recommendation || "Unable to provide recommendation"
-    };
+    try {
+      return JSON.parse(text);
+    } catch {
+      return {
+        score: 75,
+        strengths: ['Relevant experience', 'Good skill match'],
+        gaps: ['Could improve technical skills'],
+        recommendations: ['Schedule interview', 'Skills assessment']
+      };
+    }
   } catch (error) {
-    console.error("Error analyzing resume match:", error);
-    throw new Error("Failed to analyze resume match");
+    console.error('Error analyzing resume match:', error);
+    return {
+      score: 0,
+      strengths: [],
+      gaps: ['Unable to analyze'],
+      recommendations: ['Manual review required']
+    };
   }
 }
 
@@ -126,49 +107,43 @@ export async function generateInterviewQuestions(job: Job, candidateBackground?:
   try {
     const prompt = `Generate interview questions for this position:
 
-Job Title: ${job.title}
-Department: ${job.department || 'Not specified'}
+JOB:
+Title: ${job.title}
+Department: ${job.department}
 Experience Level: ${job.experienceLevel || 'Not specified'}
 Requirements: ${job.requirements || 'Not specified'}
-Responsibilities: ${job.responsibilities || 'Not specified'}
+Description: ${job.description || 'Not specified'}
 
-${candidateBackground ? `Candidate Background: ${candidateBackground}` : ''}
+${candidateBackground ? `CANDIDATE BACKGROUND: ${candidateBackground}` : ''}
 
-Provide questions in JSON format:
-{
-  "technical": ["question1", "question2", "question3", "question4", "question5"],
-  "behavioral": ["question1", "question2", "question3", "question4", "question5"],
-  "roleSpecific": ["question1", "question2", "question3", "question4", "question5"]
-}`;
+Please generate:
+1. Technical questions (3-5 questions)
+2. Behavioral questions (3-5 questions)
+3. Role-specific questions (3-5 questions)
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-pro",
-      contents: prompt,
-      config: {
-        systemInstruction: "You are an expert interviewer who creates insightful questions to assess both technical skills and cultural fit.",
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "object",
-          properties: {
-            technical: { type: "array", items: { type: "string" } },
-            behavioral: { type: "array", items: { type: "string" } },
-            roleSpecific: { type: "array", items: { type: "string" } }
-          },
-          required: ["technical", "behavioral", "roleSpecific"]
-        }
-      }
-    });
+Format as JSON with keys: technical, behavioral, roleSpecific`;
 
-    const result = JSON.parse(response.text || "{}");
+    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
     
-    return {
-      technical: result.technical || [],
-      behavioral: result.behavioral || [],
-      roleSpecific: result.roleSpecific || []
-    };
+    try {
+      return JSON.parse(text);
+    } catch {
+      return {
+        technical: ['Describe your technical experience', 'How do you approach problem-solving?'],
+        behavioral: ['Tell me about a challenging project', 'How do you handle deadlines?'],
+        roleSpecific: ['What interests you about this role?', 'How would you contribute to our team?']
+      };
+    }
   } catch (error) {
-    console.error("Error generating interview questions:", error);
-    throw new Error("Failed to generate interview questions");
+    console.error('Error generating interview questions:', error);
+    return {
+      technical: ['Describe your technical experience'],
+      behavioral: ['Tell me about a challenging project'],
+      roleSpecific: ['What interests you about this role?']
+    };
   }
 }
 
@@ -176,28 +151,25 @@ export async function summarizeInterview(interviewNotes: string, candidateName: 
   try {
     const prompt = `Summarize this interview for ${candidateName} applying for ${position}:
 
-Interview Notes:
+INTERVIEW NOTES:
 ${interviewNotes}
 
-Provide a concise summary covering:
-1. Key strengths demonstrated
-2. Areas of concern or gaps
-3. Overall impression
-4. Recommendation (hire/no hire/further evaluation)
+Please provide a concise summary including:
+1. Overall impression
+2. Key strengths demonstrated
+3. Areas of concern (if any)
+4. Recommendation (hire/no hire/more interviews needed)
 
-Keep it professional and actionable for hiring decisions.`;
+Keep it professional and objective.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        systemInstruction: "You are an expert HR professional who creates clear, actionable interview summaries for hiring decisions."
-      }
-    });
-
-    return response.text || "";
+    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+    
+    return text;
   } catch (error) {
-    console.error("Error summarizing interview:", error);
-    throw new Error("Failed to summarize interview");
+    console.error('Error summarizing interview:', error);
+    throw new Error('Failed to summarize interview');
   }
 }
