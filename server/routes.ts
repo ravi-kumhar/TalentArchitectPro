@@ -8,7 +8,9 @@ import {
   insertApplicationSchema,
   insertInterviewSchema,
   insertOnboardingTaskSchema,
-  insertPerformanceReviewSchema
+  insertPerformanceReviewSchema,
+  insertActivityLogSchema,
+  insertJobTemplateSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { generateJobDescription, analyzeResumeMatch } from "./services/gemini";
