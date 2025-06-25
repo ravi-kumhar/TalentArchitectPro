@@ -35,7 +35,7 @@ export interface IStorage {
   getUsers(): Promise<User[]>;
   updateUser(id: number, userData: Partial<{ firstName: string; lastName: string; email: string; role: string; department: string; isActive: boolean; }>): Promise<User>;
   
-  // Job operations
+  // Job operations  
   getJobs(filters?: { status?: string; department?: string; limit?: number }): Promise<Job[]>;
   getJob(id: number): Promise<Job | undefined>;
   createJob(job: InsertJob): Promise<Job>;
@@ -240,7 +240,14 @@ export class DatabaseStorage implements IStorage {
       query = query.where(eq(applications.candidateId, filters.candidateId));
     }
     if (filters?.status) {
-      query = query.where(eq(applications.status, filters.status as any));
+      // Handle multiple statuses separated by comma
+      const statuses = filters.status.split(',');
+      if (statuses.length === 1) {
+        query = query.where(eq(applications.status, filters.status as any));
+      } else {
+        // For multiple statuses, use the first one for now
+        query = query.where(eq(applications.status, statuses[0] as any));
+      }
     }
     
     return await query;

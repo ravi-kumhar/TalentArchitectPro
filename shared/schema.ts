@@ -117,7 +117,7 @@ export const applications = pgTable("applications", {
 export const interviews = pgTable("interviews", {
   id: serial("id").primaryKey(),
   applicationId: integer("application_id").references(() => applications.id).notNull(),
-  interviewerId: varchar("interviewer_id").references(() => users.id).notNull(),
+  interviewerId: integer("interviewer_id").references(() => users.id).notNull(),
   scheduledAt: timestamp("scheduled_at").notNull(),
   duration: integer("duration_minutes").default(60),
   type: varchar("type", { 
@@ -141,13 +141,13 @@ export const interviews = pgTable("interviews", {
 // Onboarding tasks
 export const onboardingTasks = pgTable("onboarding_tasks", {
   id: serial("id").primaryKey(),
-  employeeId: varchar("employee_id").references(() => users.id).notNull(),
+  employeeId: integer("employee_id").references(() => users.id).notNull(),
   title: varchar("title").notNull(),
   description: text("description"),
   category: varchar("category", { 
     enum: ["hr", "it", "admin", "training", "documentation"] 
   }).default("hr"),
-  assignedTo: varchar("assigned_to").references(() => users.id),
+  assignedTo: integer("assigned_to").references(() => users.id),
   dueDate: date("due_date"),
   status: varchar("status", { 
     enum: ["pending", "in_progress", "completed", "overdue"] 
@@ -163,8 +163,8 @@ export const onboardingTasks = pgTable("onboarding_tasks", {
 // Performance reviews
 export const performanceReviews = pgTable("performance_reviews", {
   id: serial("id").primaryKey(),
-  employeeId: varchar("employee_id").references(() => users.id).notNull(),
-  reviewerId: varchar("reviewer_id").references(() => users.id).notNull(),
+  employeeId: integer("employee_id").references(() => users.id).notNull(),
+  reviewerId: integer("reviewer_id").references(() => users.id).notNull(),
   period: varchar("period"), // e.g., "Q1 2024", "2024 Annual"
   type: varchar("type", { 
     enum: ["quarterly", "annual", "30_day", "60_day", "90_day"] 
