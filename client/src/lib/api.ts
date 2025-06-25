@@ -106,6 +106,8 @@ export const candidatesAPI = {
   
   update: (id: number, data: any) => apiRequest('PUT', `/api/candidates/${id}`, data),
   
+  delete: (id: number) => apiRequest('DELETE', `/api/candidates/${id}`),
+  
   parseResume: (file: File) => uploadFile('/api/candidates/parse-resume', file),
 };
 
