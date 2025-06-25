@@ -6,12 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Filter, Eye, Edit, Copy, MoreVertical, Trash2 } from "lucide-react";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { jobsAPI, invalidateQueries } from "@/lib/api";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -21,7 +16,7 @@ import type { Job } from "@shared/schema";
 export default function Recruitment() {
   const [showCreateJob, setShowCreateJob] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("active");
+  const [statusFilter, setStatusFilter] = useState("");
   const { toast } = useToast();
 
   const { data: jobs = [], isLoading, error } = useQuery({
@@ -163,33 +158,31 @@ export default function Recruitment() {
             {isLoading ? (
               // Loading skeleton
               Array(6).fill(0).map((_, index) => (
-                <Card key={index} className="animate-pulse">
+                <Card key={index} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
-                        <div className="h-5 bg-gray-200 rounded w-48"></div>
-                        <div className="h-4 bg-gray-200 rounded w-32"></div>
+                        <div className="w-48 h-5 bg-gray-200 rounded animate-pulse" />
+                        <div className="w-32 h-4 bg-gray-200 rounded animate-pulse" />
                       </div>
-                      <div className="h-6 bg-gray-200 rounded w-16"></div>
+                      <div className="w-16 h-6 bg-gray-200 rounded animate-pulse" />
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <div className="h-3 bg-gray-200 rounded w-16"></div>
-                        <div className="h-4 bg-gray-200 rounded w-20"></div>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="h-3 bg-gray-200 rounded w-20"></div>
-                        <div className="h-4 bg-gray-200 rounded w-8"></div>
-                      </div>
+                      {Array(4).fill(0).map((_, i) => (
+                        <div key={i} className="space-y-1">
+                          <div className="w-16 h-3 bg-gray-200 rounded animate-pulse" />
+                          <div className="w-20 h-4 bg-gray-200 rounded animate-pulse" />
+                        </div>
+                      ))}
                     </div>
                     <div className="flex items-center justify-between pt-2">
                       <div className="flex items-center gap-2">
-                        <div className="h-8 bg-gray-200 rounded w-16"></div>
-                        <div className="h-8 bg-gray-200 rounded w-16"></div>
+                        <div className="w-16 h-8 bg-gray-200 rounded animate-pulse" />
+                        <div className="w-16 h-8 bg-gray-200 rounded animate-pulse" />
                       </div>
-                      <div className="h-8 bg-gray-200 rounded w-8"></div>
+                      <div className="w-8 h-8 bg-gray-200 rounded animate-pulse" />
                     </div>
                   </CardContent>
                 </Card>
@@ -203,7 +196,7 @@ export default function Recruitment() {
                 </p>
                 <Button onClick={() => setShowCreateJob(true)}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Create Job Posting
+                  Create Job
                 </Button>
               </div>
             ) : (
@@ -224,7 +217,7 @@ export default function Recruitment() {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-muted-foreground">Location</p>
-                        <p className="font-medium">{job.location || 'Remote'}</p>
+                        <p className="font-medium">{job.location || 'Not specified'}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Applications</p>
@@ -233,7 +226,7 @@ export default function Recruitment() {
                       <div>
                         <p className="text-muted-foreground">Posted</p>
                         <p className="font-medium">
-                          {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'Today'}
+                          {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'Recently'}
                         </p>
                       </div>
                       <div>
@@ -291,8 +284,6 @@ export default function Recruitment() {
               ))
             )}
           </div>
-
-          </div>
         </TabsContent>
 
         <TabsContent value="job-pipeline">
@@ -301,31 +292,179 @@ export default function Recruitment() {
               <CardTitle>Recruitment Pipeline</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Pipeline view coming soon...</p>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="space-y-3">
+                  <h3 className="font-medium text-gray-900">Applied</h3>
+                  <div className="space-y-2">
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="font-medium text-sm">John Smith</p>
+                      <p className="text-xs text-muted-foreground">Frontend Developer</p>
+                    </div>
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="font-medium text-sm">Sarah Wilson</p>
+                      <p className="text-xs text-muted-foreground">Product Manager</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <h3 className="font-medium text-gray-900">Screening</h3>
+                  <div className="space-y-2">
+                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="font-medium text-sm">Mike Chen</p>
+                      <p className="text-xs text-muted-foreground">UX Designer</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <h3 className="font-medium text-gray-900">Interview</h3>
+                  <div className="space-y-2">
+                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <p className="font-medium text-sm">Lisa Garcia</p>
+                      <p className="text-xs text-muted-foreground">Data Scientist</p>
+                    </div>
+                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <p className="font-medium text-sm">David Kim</p>
+                      <p className="text-xs text-muted-foreground">Backend Engineer</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <h3 className="font-medium text-gray-900">Offer</h3>
+                  <div className="space-y-2">
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="font-medium text-sm">Anna Taylor</p>
+                      <p className="text-xs text-muted-foreground">Marketing Manager</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="analytics">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recruitment Analytics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Analytics dashboard coming soon...</p>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Hiring Metrics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Time to Fill</span>
+                    <span className="font-medium">32 days</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Cost per Hire</span>
+                    <span className="font-medium">$4,200</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Offer Acceptance</span>
+                    <span className="font-medium">85%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Source Performance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">LinkedIn</span>
+                    <span className="font-medium">45%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Direct Applications</span>
+                    <span className="font-medium">30%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Referrals</span>
+                    <span className="font-medium">25%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Monthly Stats</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Applications</span>
+                    <span className="font-medium">156</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Interviews</span>
+                    <span className="font-medium">42</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Hires</span>
+                    <span className="font-medium">8</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="templates">
-          <Card>
-            <CardHeader>
-              <CardTitle>Job Description Templates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Template library coming soon...</p>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardHeader>
+                <CardTitle className="text-lg">Software Engineer Template</CardTitle>
+                <p className="text-sm text-muted-foreground">For technical roles</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Badge variant="secondary">React</Badge>
+                  <Badge variant="secondary">Node.js</Badge>
+                  <Badge variant="secondary">Full-stack</Badge>
+                </div>
+                <Button className="w-full mt-4" variant="outline">
+                  Use Template
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardHeader>
+                <CardTitle className="text-lg">Product Manager Template</CardTitle>
+                <p className="text-sm text-muted-foreground">For product roles</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Badge variant="secondary">Strategy</Badge>
+                  <Badge variant="secondary">Analytics</Badge>
+                  <Badge variant="secondary">Leadership</Badge>
+                </div>
+                <Button className="w-full mt-4" variant="outline">
+                  Use Template
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardHeader>
+                <CardTitle className="text-lg">Designer Template</CardTitle>
+                <p className="text-sm text-muted-foreground">For design roles</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Badge variant="secondary">UI/UX</Badge>
+                  <Badge variant="secondary">Figma</Badge>
+                  <Badge variant="secondary">Research</Badge>
+                </div>
+                <Button className="w-full mt-4" variant="outline">
+                  Use Template
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
 
